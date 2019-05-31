@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import { Transaction, blake2b256, secp256k1, address } from '../src'
+import { Transaction } from '../src'
+import { blake2b256 } from '../src/blake2b'
 
 // tslint:disable:quotemark
 // tslint:disable:object-literal-key-quotes
@@ -68,11 +69,8 @@ describe("transaction", () => {
         }).intrinsicGas).equal(53000)
 
         expect(unsigned.signature).equal(undefined)
-        expect(unsigned.origin).equal(null)
 
         expect(unsigned.encode().toString('hex')).equal(unsignedEncoded.toString('hex'))
-        expect(Transaction.decode(unsignedEncoded, true))
-            .deep.equal(unsigned)
     })
 
     it('invalid body', () => {
@@ -97,58 +95,20 @@ describe("transaction", () => {
 
     const signed = new Transaction(correctTransactionBody)
     const signedEncoded = Buffer.from('f8970184aabbccdd20f840df947567d83b7b8d80addcb281a71d54fc7b3364ffed82271086000000606060df947567d83b7b8d80addcb281a71d54fc7b3364ffed824e208600000060606081808252088083bc614ec0b841f76f3c91a834165872aa9464fc55b03a13f46ea8d3b858e528fcceaf371ad6884193c3f313ff8effbb57fe4d1adc13dceb933bedbf9dbb528d2936203d5511df00', 'hex')
-    const privKey = Buffer.from('7582be841ca040aa940fff6c05773129e135623e41acce3e0b8ba520dc1ae26a', 'hex')
-    signed.signature = secp256k1.sign(blake2b256(signed.encode()), privKey)
-    const signer = address.fromPublicKey(secp256k1.derivePublicKey(privKey))
+    signed.signature = Buffer.from('f76f3c91a834165872aa9464fc55b03a13f46ea8d3b858e528fcceaf371ad6884193c3f313ff8effbb57fe4d1adc13dceb933bedbf9dbb528d2936203d5511df00', 'hex')
 
     it("signed", () => {
         expect(signed.signature!.toString('hex')).equal('f76f3c91a834165872aa9464fc55b03a13f46ea8d3b858e528fcceaf371ad6884193c3f313ff8effbb57fe4d1adc13dceb933bedbf9dbb528d2936203d5511df00')
-        expect(signed.origin).equal(signer)
         expect(signed.id).equal('0xda90eaea52980bc4bb8d40cb2ff84d78433b3b4a6e7d50b75736c5e3e77b71ec')
-        expect(signed.signingHash(signer).toString('hex')).equal('da90eaea52980bc4bb8d40cb2ff84d78433b3b4a6e7d50b75736c5e3e77b71ec')
     })
 
     it("encode decode", () => {
         expect(signed.encode().toString('hex')).equal(signedEncoded.toString('hex'))
-        expect(Transaction.decode(signedEncoded)).deep.equal(signed)
-
-        expect(() => Transaction.decode(unsignedEncoded)).to.throw()
-        expect(() => Transaction.decode(signedEncoded, true)).to.throw()
-
-        // Encode invalid reserved field
-        const encodedIncorrectlyDelegated = incorrectlyDelegated.encode().toString('hex')
-        Transaction.decode(Buffer.from(encodedIncorrectlyDelegated, "hex"), true)
     })
 
     const incorrectlySigned = new Transaction(correctTransactionBody)
     incorrectlySigned.signature = Buffer.from([1, 2, 3])
     it('incorrectly signed', () => {
-        expect(incorrectlySigned.origin).equal(null)
         expect(incorrectlySigned.id).equal(null)
-        expect(incorrectlySigned.delegator).equal(null)
-    })
-
-    it('features', () => {
-        expect(unsigned.delegated).equal(false)
-        expect(delegated.delegated).equal(true)
-
-        const priv1 = secp256k1.generatePrivateKey()
-        const priv2 = secp256k1.generatePrivateKey()
-        const addr1 = address.fromPublicKey(secp256k1.derivePublicKey(priv1))
-        const addr2 = address.fromPublicKey(secp256k1.derivePublicKey(priv2))
-
-        const hash = delegated.signingHash()
-        const dhash = delegated.signingHash(addr1)
-        expect(() => delegated.signingHash("INVALID_ADDRESS")).to.throw(Error, 'delegateFor expected address')
-
-        const sig = Buffer.concat([
-            secp256k1.sign(hash, priv1),
-            secp256k1.sign(dhash, priv2)
-        ])
-
-        delegated.signature = sig
-
-        expect(delegated.origin).equal(addr1)
-        expect(delegated.delegator).equal(addr2)
     })
 })

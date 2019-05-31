@@ -4,7 +4,7 @@
     "module": "commonjs",
     "strict": true,
     "outDir": "./dist",
-    "inlineSourceMap": true,
+    "inlineSourceMap": false,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
