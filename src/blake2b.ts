@@ -1,4 +1,5 @@
-import blake from 'blakejs'
+// @ts-expect-error
+import blake from '@exodus/blakejs'
 
 /**
  * computes blake2b 256bit hash of given data

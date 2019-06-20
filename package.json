@@ -75,9 +75,9 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
+    "@exodus/blakejs": "^1.1.0",
     "@vechain/ethers": "^4.0.27-5",
-    "bignumber.js": "^7.2.1",
-    "blakejs": "^1.1.2",
+    "bignumber.js": "^8.0.1",
     "elliptic": "6.5.4",
     "js-sha3": "0.5.7",
     "rlp": "^2.0.0"
