@@ -1,7 +1,4 @@
-import elliptic from 'elliptic'
-
-const { ec: EC } = elliptic
-const curve = new EC('secp256k1')
+import { recoverPublicKey } from '@noble/secp256k1'
 
 function isValidMessageHash(hash: Buffer) {
     return Buffer.isBuffer(hash) && hash.length === 32
@@ -26,13 +23,6 @@ export namespace secp256k1 {
             throw new Error('invalid signature recovery')
         }
 
-        const r = sig.slice(0, 32)
-        const s = sig.slice(32, 64)
-
-        return Buffer.from(curve.recoverPubKey(
-            msgHash,
-            { r, s },
-            recovery
-        ).encode('array', false))
+        return Buffer.from(recoverPublicKey(msgHash, sig.slice(0, 64), recovery, false))
     }
 }

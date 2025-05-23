@@ -1,5 +1,6 @@
 import { AbiCoder, formatSignature as _formatSignature } from '@vechain/ethers/utils/abi-coder.js'
-import { keccak256 } from './keccak.js'
+// @ts-expect-error
+import { keccak256 } from '@exodus/crypto/keccak'
 
 class Coder extends AbiCoder {
     constructor() {

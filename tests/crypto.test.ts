@@ -1,7 +1,7 @@
 import chai from 'chai'
 import { address } from '../src/address'
 import { blake2b256 } from '../src/blake2b'
-import { keccak256 } from '../src/keccak'
+import { keccak256 } from '@exodus/crypto/keccak'
 import { secp256k1 } from '../src/secp256k1'
 
 const { expect } = chai
@@ -21,7 +21,6 @@ describe('hash', () => {
     it('keccak', () => {
         expect(keccak256(Buffer.alloc(0)).toString('hex')).equal('c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470')
         expect(keccak256('hello world').toString('hex')).equal('47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad')
-        expect(keccak256('hello', ' world').toString('hex')).equal('47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad')
     })
 })
 

@@ -69,9 +69,10 @@
   },
   "dependencies": {
     "@exodus/blakejs": "^1.1.0",
+    "@exodus/crypto": "^1.0.0-rc.20",
+    "@noble/secp256k1": "^1.7.2",
     "@vechain/ethers": "^4.0.27-5",
     "bignumber.js": "^8.0.1",
-    "elliptic": "6.5.4",
     "js-sha3": "0.5.7",
     "rlp": "^2.0.0"
   },

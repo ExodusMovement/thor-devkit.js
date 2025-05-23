@@ -1,4 +1,5 @@
-import { keccak256 } from './keccak.js'
+// @ts-expect-error
+import { keccak256 } from '@exodus/crypto/keccak'
 
 /** address related utilities */
 export namespace address {
