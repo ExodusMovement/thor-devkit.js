@@ -1,13 +1,18 @@
-import { AbiCoder, formatSignature as _formatSignature } from './ethers/abi-coder.js'
+// @ts-expect-error
+import { AbiCoder, formatSignature as _formatSignature } from '@exodus/ethers/utils/abi-coder.js'
 // @ts-expect-error
 import { keccak256 } from '@exodus/crypto/keccak'
 
 class Coder extends AbiCoder {
     constructor() {
+        // @ts-expect-error
         super((type, value) => {
             if ((type.match(/^u?int/) && !Array.isArray(value) && typeof value !== 'object') ||
                 value._ethersType === 'BigNumber') {
                 return value.toString()
+            }
+            if (type === 'address') {
+                return value.toLowerCase()
             }
             return value
         })
