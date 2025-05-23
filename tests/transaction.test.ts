@@ -1,5 +1,5 @@
 import chai from 'chai'
-import { Transaction } from '../src'
+import { Transaction, Body } from '../src'
 import { blake2b256 } from '../src/blake2b'
 
 const { expect } = chai
@@ -12,7 +12,7 @@ const { expect } = chai
 describe("transaction", () => {
 
     // Correct transaction body
-    const correctTransactionBody: Transaction.Body = {
+    const correctTransactionBody: Body = {
         chainTag: 1,
         blockRef: '0x00000000aabbccdd',
         expiration: 32,

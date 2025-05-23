@@ -18,7 +18,7 @@ class Coder extends AbiCoder {
         })
     }
 
-    public encode(types: Array<string | abi.Function.Parameter>, values: any[]): string {
+    public encode(types: Array<string | Function.Parameter>, values: any[]): string {
         try {
             return super.encode(types, values)
         } catch (err) {
@@ -29,7 +29,7 @@ class Coder extends AbiCoder {
         }
     }
 
-    public decode(types: Array<string | abi.Function.Parameter>, data: string): any[] {
+    public decode(types: Array<string | Function.Parameter>, data: string): any[] {
         try {
             return super.decode(types, data)
         } catch (err) {
@@ -55,9 +55,6 @@ function formatSignature(fragment: any) {
         throw err
     }
 }
-
-/** encode/decode parameters of contract function call, event log, according to ABI JSON */
-export namespace abi {
 
     /**
      * encode single parameter
@@ -162,4 +159,4 @@ export namespace abi {
     }
 
     export type Decoded = { [name: string]: any } & { [index: number]: any }
-}
+

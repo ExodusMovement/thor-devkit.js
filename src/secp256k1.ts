@@ -4,8 +4,6 @@ function isValidMessageHash(hash: Buffer) {
     return Buffer.isBuffer(hash) && hash.length === 32
 }
 
-/** secp256k1 methods set */
-export namespace secp256k1 {
     /**
      * recovery signature to public key
      * @param msgHash hash of message
@@ -25,4 +23,3 @@ export namespace secp256k1 {
 
         return Buffer.from(recoverPublicKey(msgHash, sig.slice(0, 64), recovery, false))
     }
-}

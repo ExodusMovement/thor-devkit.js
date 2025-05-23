@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js'
 import * as rlp from 'rlp'
 
 export class RLP {
-    constructor(readonly profile: RLP.Profile) { }
+    constructor(readonly profile: Profile) { }
 
     /**
      * encode data according to profile
@@ -23,7 +23,6 @@ export class RLP {
     }
 }
 
-export namespace RLP {
     /** base class of scalar kind */
     export abstract class ScalarKind {
         public abstract data(data: any, ctx: string): { encode(): Buffer }
@@ -216,12 +215,11 @@ export namespace RLP {
         name: string
         kind: ScalarKind | ArrayKind | StructKind
     }
-}
 
-function pack(obj: any, profile: RLP.Profile, ctx: string): any {
+function pack(obj: any, profile: Profile, ctx: string): any {
     ctx = ctx ? ctx + '.' + profile.name : profile.name
     const kind = profile.kind
-    if (kind instanceof RLP.ScalarKind) {
+    if (kind instanceof ScalarKind) {
         return kind.data(obj, ctx).encode()
     }
 
@@ -235,10 +233,10 @@ function pack(obj: any, profile: RLP.Profile, ctx: string): any {
     return (obj as any[]).map((part, i) => pack(part, { name: '#' + i, kind: item }, ctx))
 }
 
-function unpack(packed: any, profile: RLP.Profile, ctx: string): any {
+function unpack(packed: any, profile: Profile, ctx: string): any {
     ctx = ctx ? ctx + '.' + profile.name : profile.name
     const kind = profile.kind
-    if (kind instanceof RLP.ScalarKind) {
+    if (kind instanceof ScalarKind) {
         assert(Buffer.isBuffer(packed), ctx,
             'expected Buffer')
         return kind.buffer(packed, ctx).decode()

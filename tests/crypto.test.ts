@@ -1,8 +1,8 @@
 import chai from 'chai'
-import { address } from '../src/address'
+import { fromPublicKey } from '../src/address'
 import { blake2b256 } from '../src/blake2b'
 import { keccak256 } from '@exodus/crypto/keccak'
-import { secp256k1 } from '../src/secp256k1'
+import * as secp256k1 from '../src/secp256k1'
 
 const { expect } = chai
 
@@ -35,7 +35,7 @@ describe('secp256k1', () => {
     const validSignatureWithWrongRecovery = Buffer.from('f8fe82c74f9e1f5bf443f8a7f8eb968140f554968fdcab0a6ffe904e451c8b9244be44bccb1feb34dd20d9d8943f8c131227e55861736907b02d32c06b934d72FF', 'hex')
 
     it('derive', () => {
-        expect(address.fromPublicKey(pubKey)).deep.equal(addr)
+        expect(fromPublicKey(pubKey)).deep.equal(addr)
     })
     it('sign/recover', () => {
         expect(secp256k1.recover(msgHash, sig)).deep.equal(pubKey)

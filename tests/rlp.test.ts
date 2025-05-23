@@ -1,5 +1,5 @@
 import chai from 'chai'
-import { RLP } from '../src/rlp'
+import * as RLP from '../src/rlp'
 // tslint:disable:quotemark
 // tslint:disable:object-literal-key-quotes
 // tslint:disable:max-line-length
@@ -138,12 +138,12 @@ describe('rlp', () => {
     }
 
     it('encode', () => {
-        const buf = new RLP(profile).encode(data)
+        const buf = new RLP.RLP(profile).encode(data)
         expect(buf.toString('hex')).equal('d17b8412345678cac4118204d2c41282162e')
     })
 
     it('decode', () => {
-        const dec = new RLP(profile).decode(Buffer.from('d17b8412345678cac4118204d2c41282162e', 'hex'))
+        const dec = new RLP.RLP(profile).decode(Buffer.from('d17b8412345678cac4118204d2c41282162e', 'hex'))
         expect(dec).deep.equal(data)
     })
 })

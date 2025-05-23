@@ -1,22 +1,26 @@
-import { address } from './address.js'
+import { fromPublicKey } from './address.js'
 import { blake2b256 } from './blake2b.js'
-import { RLP } from './rlp.js'
-import { secp256k1 } from './secp256k1.js'
+import * as RLP from './rlp.js'
+import * as secp256k1 from './secp256k1.js'
 
 /** Transaction class defines VeChainThor's multi-clause transaction */
 export class Transaction {
     public static readonly DELEGATED_MASK = 1
 
-    public readonly body: Transaction.Body
+    public readonly body: Body
 
     /** signature to transaction */
     public signature?: Buffer
+
+    public static intrinsicGas(clauses: Clause[]) {
+        return intrinsicGas(clauses)
+    }
 
     /**
      * construct a transaction object with given body
      * @param body body of tx
      */
-    constructor(body: Transaction.Body) {
+    constructor(body: Body) {
         this.body = { ...body }
     }
 
@@ -31,7 +35,7 @@ export class Transaction {
         try {
             const signingHash = this.signingHash()
             const pubKey = secp256k1.recover(signingHash, this.signature!.slice(0, 65))
-            const origin = address.fromPublicKey(pubKey)
+            const origin = fromPublicKey(pubKey)
             return '0x' + blake2b256(
                 signingHash,
                 Buffer.from(origin.slice(2), 'hex'),
@@ -94,7 +98,6 @@ export class Transaction {
     }
 }
 
-export namespace Transaction {
     /** clause type */
     export interface Clause {
         /**
@@ -140,7 +143,7 @@ export namespace Transaction {
      * calculates intrinsic gas that a tx costs with the given clauses.
      * @param clauses
      */
-    export function intrinsicGas(clauses: Clause[]) {
+    function intrinsicGas(clauses: Clause[]) {
         const txGas = 5000
         const clauseGas = 16000
         const clauseGasContractCreation = 48000
@@ -174,9 +177,8 @@ export namespace Transaction {
         }
         return sum
     }
-}
 
-const unsignedTxRLP = new RLP({
+const unsignedTxRLP = new RLP.RLP({
     name: 'tx',
     kind: [
         { name: 'chainTag', kind: new RLP.NumericKind(1) },
@@ -199,7 +201,7 @@ const unsignedTxRLP = new RLP({
     ],
 })
 
-const txRLP = new RLP({
+const txRLP = new RLP.RLP({
     name: 'tx',
     kind: [...(unsignedTxRLP.profile.kind as RLP.Profile[]), { name: 'signature', kind: new RLP.BufferKind() }],
 })
