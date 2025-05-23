@@ -1,8 +1,10 @@
-import { expect } from 'chai'
+import chai from 'chai'
 import { address } from '../src/address'
 import { blake2b256 } from '../src/blake2b'
 import { keccak256 } from '../src/keccak'
 import { secp256k1 } from '../src/secp256k1'
+
+const { expect } = chai
 
 // tslint:disable:quotemark
 // tslint:disable:object-literal-key-quotes

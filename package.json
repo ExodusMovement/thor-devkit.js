@@ -2,25 +2,18 @@
   "name": "thor-devkit",
   "version": "2.0.9",
   "description": "Typescript library to aid DApp development on VeChain Thor",
+  "type": "module",
   "main": "dist/index.js",
-  "module": "esm/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "require": "./dist/index.js",
-      "import": "./esm/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
   "files": [
-    "dist",
-    "esm"
+    "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist/ esm/ && tsc -d -p . && tsc --module esnext --outDir 'esm' -p .",
+    "build": "rm -rf dist/ && tsc -d -p .",
     "lint": "tslint -p .",
     "prepack": "npm run build",
-    "test": "tslint -p . && NODE_ENV=test mocha --require ts-node/register --timeout 20000 --recursive  './**/*.test.ts'",
+    "test": "tslint -p . && npx @exodus/test --esbuild --jest",
     "cover": "NODE_ENV=test nyc npm t"
   },
   "nyc": {

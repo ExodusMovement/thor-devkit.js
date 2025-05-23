@@ -1,4 +1,6 @@
-import { keccak_256 } from 'js-sha3'
+import keccak from 'js-sha3'
+
+const { keccak_256 } = keccak
 /**
  * computes keccak256 hash of given data
  * @param data one or more Buffer | string

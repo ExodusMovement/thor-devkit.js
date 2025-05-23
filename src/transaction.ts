@@ -1,7 +1,7 @@
-import { address } from './address'
-import { blake2b256 } from './blake2b'
-import { RLP } from './rlp'
-import { secp256k1 } from './secp256k1'
+import { address } from './address.js'
+import { blake2b256 } from './blake2b.js'
+import { RLP } from './rlp.js'
+import { secp256k1 } from './secp256k1.js'
 
 /** Transaction class defines VeChainThor's multi-clause transaction */
 export class Transaction {

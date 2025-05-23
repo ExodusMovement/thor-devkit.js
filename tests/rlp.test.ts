@@ -1,9 +1,11 @@
-import { expect } from 'chai'
+import chai from 'chai'
 import { RLP } from '../src/rlp'
 // tslint:disable:quotemark
 // tslint:disable:object-literal-key-quotes
 // tslint:disable:max-line-length
 // tslint:disable:trailing-comma
+
+const { expect } = chai
 
 describe('rlp', () => {
     it('bufferKind', () => {

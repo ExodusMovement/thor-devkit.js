@@ -1,5 +1,5 @@
-import { AbiCoder, formatSignature as _formatSignature } from '@vechain/ethers/utils/abi-coder'
-import { keccak256 } from './keccak'
+import { AbiCoder, formatSignature as _formatSignature } from '@vechain/ethers/utils/abi-coder.js'
+import { keccak256 } from './keccak.js'
 
 class Coder extends AbiCoder {
     constructor() {

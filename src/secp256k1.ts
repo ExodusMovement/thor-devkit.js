@@ -1,5 +1,6 @@
-import { ec as EC } from 'elliptic'
+import elliptic from 'elliptic'
 
+const { ec: EC } = elliptic
 const curve = new EC('secp256k1')
 
 function isValidMessageHash(hash: Buffer) {

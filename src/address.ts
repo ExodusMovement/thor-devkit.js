@@ -1,4 +1,4 @@
-import { keccak256 } from './keccak'
+import { keccak256 } from './keccak.js'
 
 /** address related utilities */
 export namespace address {
