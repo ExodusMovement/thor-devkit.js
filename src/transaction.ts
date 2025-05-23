@@ -43,59 +43,12 @@ export class Transaction {
 
     /**
      * compute signing hashes.
-     * It returns tx hash for origin or delegator depends on param `delegateFor`.
-     * @param delegateFor address of intended tx origin. If set, the returned hash is for delegator to sign.
      */
-    public signingHash(delegateFor?: string) {
+    public signingHash() {
         const reserved = this._encodeReserved()
         const buf = unsignedTxRLP.encode({ ...this.body, reserved })
         const hash = blake2b256(buf)
-
-        if (delegateFor) {
-            if (!/^0x[0-9a-f]{40}$/i.test(delegateFor)) {
-                throw new Error('delegateFor expected address')
-            }
-            return blake2b256(hash, Buffer.from(delegateFor.slice(2), 'hex'))
-        }
         return hash
-    }
-
-    /** returns tx origin. null returned if no signature or not incorrectly signed */
-    get origin() {
-        if (!this._signatureValid) {
-            return null
-        }
-
-        try {
-            const signingHash = this.signingHash()
-            const pubKey = secp256k1.recover(signingHash, this.signature!.slice(0, 65))
-            return '0x' + publicKeyToAddress(pubKey).toString('hex')
-        } catch {
-            return null
-        }
-    }
-
-    /** returns tx delegator. null returned if no signature or not incorrectly signed */
-    get delegator() {
-        if (!this.delegated) {
-            return null
-        }
-        if (!this._signatureValid) {
-            return null
-        }
-
-        const origin = this.origin
-        if (!origin) {
-            return null
-        }
-
-        try {
-            const signingHash = this.signingHash(origin)
-            const pubKey = secp256k1.recover(signingHash, this.signature!.slice(65))
-            return '0x' + publicKeyToAddress(pubKey).toString('hex')
-        } catch {
-            return null
-        }
     }
 
     /** returns whether delegated. see https://github.com/vechain/VIPs/blob/master/vips/VIP-191.md */
