@@ -10,17 +10,12 @@ import { arrayify, concat, hexlify, padZeros } from '@exodus/ethers/utils/bytes.
 import { toUtf8Bytes, toUtf8String } from '@exodus/ethers/utils/utf8.js';
 import { deepCopy, defineReadOnly, shallowCopy } from '@exodus/ethers/utils/properties.js';
 
-import { getAddress } from './address.js';
-
 import type { Arrayish } from '@exodus/ethers/utils/bytes.js';
 import type { BigNumberish } from '@exodus/ethers/utils/bignumber.js';
 
-///////////////////////////////
-// Exported Types
+type CoerceFunc = (type: string, value: any) => any;
 
-export type CoerceFunc = (type: string, value: any) => any;
-
-export type ParamType = {
+type ParamType = {
     name?: string,
     type: string,
     indexed?: boolean,
@@ -29,7 +24,7 @@ export type ParamType = {
 
 // @TODO: should this just be a combined Fragment?
 
-export type EventFragment = {
+type EventFragment = {
     type: string
     name: string,
 
@@ -38,7 +33,7 @@ export type EventFragment = {
     inputs: Array<ParamType>,
 };
 
-export type FunctionFragment = {
+type FunctionFragment = {
     type: string
     name: string,
 
@@ -59,7 +54,7 @@ const paramTypeBytes = new RegExp(/^bytes([0-9]*)$/);
 const paramTypeNumber = new RegExp(/^(u?int)([0-9]*)$/);
 const paramTypeArray = new RegExp(/^(.*)\[([0-9]*)\]$/);
 
-export const defaultCoerceFunc: CoerceFunc = function(type: string, value: any): any {
+const defaultCoerceFunc: CoerceFunc = function(type: string, value: any): any {
     var match = type.match(paramTypeNumber)
     if (match && parseInt(match[2]) <= 48) { return value.toNumber(); }
     return value;
@@ -100,6 +95,26 @@ type ParseNode = {
     indexed?: boolean,
     components?: Array<any>
 };
+
+function getAddressUnchecksumed(address: string): string {
+    var result = null;
+
+    if (typeof(address) !== 'string') {
+        errors.throwError('invalid address', errors.INVALID_ARGUMENT, { arg: 'address', value: address });
+    }
+
+    if (address.match(/^(0x)?[0-9a-fA-F]{40}$/)) {
+        // Missing the 0x prefix
+        if (address.substring(0, 2) !== '0x') { address = '0x' + address; }
+        result = address
+    } else if (address.match(/^XE[0-9]{2}[0-9A-Za-z]{30,31}$/)) {
+        errors.throwError('ICAP addresses not supported', errors.INVALID_ARGUMENT, { arg: 'address', value: address });
+    } else {
+        errors.throwError('invalid address', errors.INVALID_ARGUMENT, { arg: 'address', value: address });
+    }
+
+    return result;
+}
 
 
 function parseParam(param: string, allowIndexed?: boolean): ParamType {
@@ -232,142 +247,12 @@ function parseParam(param: string, allowIndexed?: boolean): ParamType {
     return (<ParamType>parent);
 }
 
-
-// @TODO: Better return type
-function parseSignatureEvent(fragment: string): EventFragment {
-
-    var abi: EventFragment = {
-        anonymous: false,
-        inputs: [],
-        name: '',
-        type: 'event'
-    }
-
-    var match = fragment.match(regexParen);
-    if (!match) { throw new Error('invalid event: ' + fragment); }
-
-    abi.name = match[1].trim();
-
-    splitNesting(match[2]).forEach(function(param) {
-        param = parseParam(param, true);
-        param.indexed = !!param.indexed;
-        abi.inputs.push(param);
-    });
-
-    match[3].split(' ').forEach(function(modifier) {
-        switch(modifier) {
-            case 'anonymous':
-                abi.anonymous = true;
-                break;
-            case '':
-                break;
-            default:
-                errors.info('unknown modifier: ' + modifier);
-        }
-    });
-
-    if (abi.name && !abi.name.match(regexIdentifier)) {
-        throw new Error('invalid identifier: "' + abi.name + '"');
-    }
-
-    return abi;
-}
-
-function parseSignatureFunction(fragment: string): FunctionFragment {
-    var abi: FunctionFragment = {
-        constant: false,
-        gas: null,
-        inputs: [],
-        name: '',
-        outputs: [],
-        payable: false,
-        stateMutability: null,  // @TODO: Should this be initialized to 'nonpayable'?
-        type: 'function'
-    };
-
-    let comps = fragment.split('@');
-    if (comps.length !== 1) {
-        if (comps.length > 2) {
-            throw new Error('invalid signature');
-        }
-        if (!comps[1].match(/^[0-9]+$/)) {
-            throw new Error('invalid signature gas');
-        }
-        abi.gas = bigNumberify(comps[1]);
-        fragment = comps[0];
-    }
-
-    comps = fragment.split(' returns ');
-    var left = comps[0].match(regexParen);
-    if (!left) { throw new Error('invalid signature'); }
-
-    abi.name = left[1].trim();
-    if (!abi.name.match(regexIdentifier)) {
-        throw new Error('invalid identifier: "' + left[1] + '"');
-    }
-
-    splitNesting(left[2]).forEach(function(param) {
-        abi.inputs.push(parseParam(param));
-    });
-
-    left[3].split(' ').forEach(function(modifier) {
-        switch (modifier) {
-            case 'constant':
-                abi.constant = true;
-                break;
-            case 'payable':
-                abi.payable = true;
-                abi.stateMutability = 'payable';
-                break;
-            case 'pure':
-                abi.constant = true;
-                abi.stateMutability = 'pure';
-                break;
-            case 'view':
-                abi.constant = true;
-                abi.stateMutability = 'view';
-                break;
-            case 'external':
-            case 'public':
-            case '':
-                break;
-            default:
-                errors.info('unknown modifier: ' + modifier);
-        }
-    });
-
-    // We have outputs
-    if (comps.length > 1) {
-        var right = comps[1].match(regexParen);
-        if (right[1].trim() != '' || right[3].trim() != '') {
-            throw new Error('unexpected tokens');
-        }
-
-        splitNesting(right[2]).forEach(function(param) {
-            abi.outputs.push(parseParam(param));
-        });
-    }
-
-    if (abi.name === 'constructor') {
-        abi.type = "constructor";
-
-        if (abi.outputs.length) {
-            throw new Error('constructor may not have outputs');
-        }
-
-        delete abi.name;
-        delete abi.outputs;
-    }
-
-    return abi;
-}
-
-export function parseParamType(type: string): ParamType {
+function parseParamType(type: string): ParamType {
     return parseParam(type, true);
 }
 
 // @TODO: Allow a second boolean to expose names
-export function formatParamType(paramType: ParamType): string {
+function formatParamType(paramType: ParamType): string {
     return getParamCoder(defaultCoerceFunc, paramType).type;
 }
 
@@ -375,28 +260,6 @@ export function formatParamType(paramType: ParamType): string {
 export function formatSignature(fragment: EventFragment | FunctionFragment): string {
     return fragment.name + '(' + fragment.inputs.map((i) => formatParamType(i)).join(',') + ')';
 }
-
-export function parseSignature(fragment: string): EventFragment | FunctionFragment {
-    if(typeof(fragment) === 'string') {
-        // Make sure the "returns" is surrounded by a space and all whitespace is exactly one space
-        fragment = fragment.replace(/\s/g, ' ');
-        fragment = fragment.replace(/\(/g, ' (').replace(/\)/g, ') ').replace(/\s+/g, ' ');
-        fragment = fragment.trim();
-
-        if (fragment.substring(0, 6) === 'event ') {
-           return parseSignatureEvent(fragment.substring(6).trim());
-
-        } else {
-            if (fragment.substring(0, 9) === 'function ') {
-                fragment = fragment.substring(9);
-            }
-            return parseSignatureFunction(fragment.trim());
-        }
-    }
-
-    throw new Error('unknown signature');
-}
-
 
 ///////////////////////////////////
 // Coders
@@ -591,7 +454,7 @@ class CoderAddress extends Coder {
     encode(value: string): Uint8Array {
         let result = new Uint8Array(32);
         try {
-            result.set(arrayify(getAddress(value, false)), 12);
+            result.set(arrayify(getAddressUnchecksumed(value)), 12);
         } catch (error) {
             errors.throwError('invalid address', errors.INVALID_ARGUMENT, {
                 arg: this.localName,
@@ -611,7 +474,7 @@ class CoderAddress extends Coder {
         }
         return {
             consumed: 32,
-            value: this.coerceFunc('address', getAddress(hexlify(data.slice(offset + 12, offset + 32)), false))
+            value: this.coerceFunc('address', getAddressUnchecksumed(hexlify(data.slice(offset + 12, offset + 32))))
        }
     }
 }
@@ -1080,5 +943,3 @@ export class AbiCoder {
         return new CoderTuple(this.coerceFunc, coders, '_').decode(arrayify(data), 0).value;
     }
 }
-
-export const defaultAbiCoder: AbiCoder = new AbiCoder();
